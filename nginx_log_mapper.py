@@ -27,7 +27,7 @@ class NginxLogMapper(Mapper):
                     cls.emit("HUMAN", 1)
 
             except Exception as e:
-                print("Exception: {}".format(str(e)), file=sys.stderr)
+                cls.emit("EXCEPTIONS_MAPPER", str(e))
 
 
 if __name__ == "__main__":

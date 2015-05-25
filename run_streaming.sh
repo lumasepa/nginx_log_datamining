@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 MAPPER="mapper.py"
 REDUCER="reducer.py"

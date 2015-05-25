@@ -9,22 +9,22 @@ class NginxLogReducer(Reducer):
         cls.ip_re = re.compile(r"[0-9]+(?:\.[0-9]+){3}")
 
     @classmethod
-    def reducer(cls, data):
-        for key, values in data:
+    def reducer(cls, key, values):
             try:
                 if key == "BOT":
                     cls.emit("BOT", sum(map(lambda x: int(x), values)))
+
                 elif key == "HUMAN":
                     cls.emit("HUMAN", sum(map(lambda x: int(x), values)))
-                elif cls.ip_re.match(key):
+
+                elif cls.ip_re.match(key) or key == "EXCEPTIONS_MAPPER":
                     cls.emit(key, values)
+
                 else:
                     cls.emit(key, sum(map(lambda x: int(x), values)))
 
             except Exception as e:
-                print("Exception: {}".format(str(e)), file=sys.stderr)
-
-
+                cls.emit("EXCEPTIONS_REDUCER", str(e))
 
 if __name__ == "__main__":
     NginxLogReducer.run()

@@ -48,7 +48,9 @@ class Reducer(object):
         def itermap():
             for key, values in groupby(cls._read_mapper_output(sys.stdin), itemgetter(0)):
                 yield key, [value for key, value in values]
-        cls.reducer(itermap())
+
+        for key, values in itermap():
+            cls.reducer(key, values)
 
     @classmethod
     def _read_mapper_output(cls, stdin):
@@ -56,5 +58,5 @@ class Reducer(object):
             yield line.rstrip().split(cls.separator, 1)
 
     @classmethod
-    def reducer(cls, data):
+    def reducer(cls, key, values):
         raise NotImplementedError("you must implement this method")
