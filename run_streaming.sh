@@ -12,7 +12,11 @@ while (( $# )); do
 
 	-i|–input )
 		shift
-		INPUT=$1
+		INPUT="$INPUT -input $1"
+	;;
+	-ip|–input-pattern )
+		shift
+		INPUT_PATTERN="$1"
 	;;
 	-o|-output )
 		shift
@@ -30,7 +34,7 @@ while (( $# )); do
 		TEST="TRUE"
 	;;
 	--help )
-		echo "$0 [-m|-mapper MAPPER] [-r|-reducer REDUCER] [-o|-output OUTPUTDIR] [-i|-input INPUTFILE] [-t|-test]"
+		echo "$0 [-m|-mapper MAPPER] [-r|-reducer REDUCER] [-o|-output OUTPUTDIR] [-i|-input INPUTFILE(s)] [-t|-test]"
 		echo "Por defecto el mapper es mapper.py y el reducer es reducer.py"
 		echo "-output y -input son necesarios"
 		echo "En el caso de indicar -test no se usa hadoop, sino se corre localmente para pruebas"
@@ -44,22 +48,31 @@ while (( $# )); do
 	shift
 done
 
-if [ -z $INPUT ]
+if [ -z "$INPUT" ] && [ -z "$INPUT_PATTERN" ]
 then
-    echo "Necesario parametro -input"
+    echo "Necesario parametro -input o -input-pattern"
 fi
-if [ -z $TEST ]
+
+if [ "$INPUT_PATTERN" ]
+then
+	INPUT_PATTERN_FILES="$(for i in `find . -name $INPUT_PATTERN`; do FILES="$FILES -input $i"; done; echo $FILES)"
+else
+	INPUT_PATTERN_FILES=""
+fi
+
+
+if [ -z "$TEST" ]
 then
 
-    if [ -z $OUTPUT ]
+    if [ -z "$OUTPUT" ]
     then
         echo "Necesario parametro -output"
     fi
 
     FILES="$(for i in `find . -name "*.py"`; do FILES="$FILES -file $i"; done; echo $FILES)"
 
-    ../bin/hadoop jar ../share/hadoop/tools/lib/hadoop-streaming-2.6.0.jar $FILES -mapper $MAPPER -reducer $REDUCER -input $INPUT -output $OUTPUT
+    ../bin/hadoop jar ../share/hadoop/tools/lib/hadoop-streaming-2.6.0.jar $INPUT_PATTERN_FILES $FILES -mapper $MAPPER -reducer $REDUCER $INPUT -output $OUTPUT
 else
-    cat $INPUT | ./$MAPPER | sort | ./$REDUCER
+    cat "./$(echo "$INPUT $INPUT_PATTERN_FILES" | sed "s/-input//g" | sed "s/ //g")" | ./$MAPPER | sort | ./$REDUCER
 fi
 
